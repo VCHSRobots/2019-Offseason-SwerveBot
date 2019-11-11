@@ -22,6 +22,7 @@ import org.frcteam2910.common.drivers.Gyroscope;
 import org.frcteam2910.common.drivers.SwerveModule;
 import org.frcteam2910.common.math.RigidTransform2;
 import org.frcteam2910.common.math.Vector2;
+import org.frcteam2910.common.math.Rotation2;
 import org.frcteam2910.common.robot.subsystems.SwerveDrivetrain;
 import org.frcteam2910.common.util.DrivetrainFeedforwardConstants;
 import org.frcteam2910.common.util.HolonomicDriveSignal;
@@ -30,11 +31,13 @@ import org.frcteam2910.common.util.HolonomicFeedforward;
 import java.util.Optional;
 
 public class DrivetrainSubsystem extends SwerveDrivetrain {
+    /* TODO: update dimensions */
     private static final double TRACKWIDTH = 19.5;
     private static final double WHEELBASE = 23.5;
 
     private static final double MAX_VELOCITY = 12.0 * 12.0;
 
+    /* TODO: update constraints */
     public static final ITrajectoryConstraint[] CONSTRAINTS = {
             new MaxVelocityConstraint(MAX_VELOCITY),
             new MaxAccelerationConstraint(13.0 * 12.0),
@@ -51,8 +54,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     private static final double FRONT_RIGHT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-43.55619048306742);
     private static final double BACK_LEFT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-237.47063008637048);
     private static final double BACK_RIGHT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-336.70093128378477);
-    
-
+    /*
     private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.05, 0.01, 0.0);
     private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.2, 0.01, 0.0);
     private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
@@ -60,6 +62,16 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     );
 
     private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
+    */
+    /**TODO: update PID constants */
+    private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.05, 0.01, 0.0);
+    private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.2, 0.01, 0.0);
+    private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
+            new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
+    );
+
+    private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
+    /* */
 
     private static final DrivetrainSubsystem instance = new DrivetrainSubsystem();
 
@@ -102,8 +114,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
                 frontLeftAngleOffset,
                 //new Spark(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_MOTOR),
                 new TalonSRX(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_MOTOR),
-                new CANSparkMax(RobotMap.DRIVETRAIN_FRONT_LEFT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
-                new AnalogInput(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_ENCODER)
+                new CANSparkMax(RobotMap.DRIVETRAIN_FRONT_LEFT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless)
         );
         frontLeftModule.setName("Front Left");
 
@@ -111,8 +122,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
                 new Vector2(TRACKWIDTH / 2.0, WHEELBASE / 2.0),
                 frontRightAngleOffset,
                 new TalonSRX(RobotMap.DRIVETRAIN_FRONT_RIGHT_ANGLE_MOTOR),
-                new CANSparkMax(RobotMap.DRIVETRAIN_FRONT_RIGHT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
-                new AnalogInput(RobotMap.DRIVETRAIN_FRONT_RIGHT_ANGLE_ENCODER)
+                new CANSparkMax(RobotMap.DRIVETRAIN_FRONT_RIGHT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless)
         );
         frontRightModule.setName("Front Right");
 
@@ -120,8 +130,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
                 new Vector2(-TRACKWIDTH / 2.0, -WHEELBASE / 2.0),
                 backLeftAngleOffset,
                 new TalonSRX(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_MOTOR),
-                new CANSparkMax(RobotMap.DRIVETRAIN_BACK_LEFT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
-                new AnalogInput(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_ENCODER)
+                new CANSparkMax(RobotMap.DRIVETRAIN_BACK_LEFT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless)
         );
         backLeftModule.setName("Back Left");
 
@@ -129,8 +138,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
                 new Vector2(TRACKWIDTH / 2.0, -WHEELBASE / 2.0),
                 backRightAngleOffset,
                 new TalonSRX(RobotMap.DRIVETRAIN_BACK_RIGHT_ANGLE_MOTOR),
-                new CANSparkMax(RobotMap.DRIVETRAIN_BACK_RIGHT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
-                new AnalogInput(RobotMap.DRIVETRAIN_BACK_RIGHT_ANGLE_ENCODER)
+                new CANSparkMax(RobotMap.DRIVETRAIN_BACK_RIGHT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless)
         );
         backRightModule.setName("Back Right");
 
