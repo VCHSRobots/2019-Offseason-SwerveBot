@@ -1,11 +1,22 @@
+package frc.robot.subsystems;
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
+
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.Spark;
+//import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.frcteam2910.c2019.RobotMap;
-import org.frcteam2910.c2019.commands.HolonomicDriveCommand;
-import org.frcteam2910.c2019.drivers.Mk2SwerveModule;
+
+//import org.frcteam2910.c2019.RobotMap;
+//import org.frcteam2910.c2019.commands.HolonomicDriveCommand;
+
+import frc.robot.RobotMap;
+import frc.robot.drivers.SwerveModule4415Mk1;
+import frc.robot.subsystems.Superstructure;
+import frc.robot.Robot;
+
 import org.frcteam2910.common.control.*;
 import org.frcteam2910.common.drivers.Gyroscope;
 import org.frcteam2910.common.drivers.SwerveModule;
@@ -34,10 +45,13 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     private static final double FRONT_RIGHT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-329.0);
     private static final double BACK_LEFT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-218.10);
     private static final double BACK_RIGHT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-268.9);
+
+    
     private static final double FRONT_LEFT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-170.2152486947372);
     private static final double FRONT_RIGHT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-43.55619048306742);
     private static final double BACK_LEFT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-237.47063008637048);
     private static final double BACK_RIGHT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-336.70093128378477);
+    
 
     private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.05, 0.01, 0.0);
     private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.2, 0.01, 0.0);
@@ -49,7 +63,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
 
     private static final DrivetrainSubsystem instance = new DrivetrainSubsystem();
 
-    private Mk2SwerveModule[] swerveModules;
+    private SwerveModule4415Mk1[] swerveModules;
 
     private HolonomicMotionProfiledTrajectoryFollower follower = new HolonomicMotionProfiledTrajectoryFollower(
             FOLLOWER_TRANSLATION_CONSTANTS,
@@ -71,50 +85,56 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
         double frontRightAngleOffset = FRONT_RIGHT_ANGLE_OFFSET_COMPETITION;
         double backLeftAngleOffset = BACK_LEFT_ANGLE_OFFSET_COMPETITION;
         double backRightAngleOffset = BACK_RIGHT_ANGLE_OFFSET_COMPETITION;
-        if (Superstructure.getInstance().isPracticeBot()) {
-            frontLeftAngleOffset = FRONT_LEFT_ANGLE_OFFSET_PRACTICE;
-            frontRightAngleOffset = FRONT_RIGHT_ANGLE_OFFSET_PRACTICE;
-            backLeftAngleOffset = BACK_LEFT_ANGLE_OFFSET_PRACTICE;
-            backRightAngleOffset = BACK_RIGHT_ANGLE_OFFSET_PRACTICE;
-        }
+       // if (Superstructure.getInstance().isPracticeBot()) {
+       //     frontLeftAngleOffset = FRONT_LEFT_ANGLE_OFFSET_PRACTICE;
+       //     frontRightAngleOffset = FRONT_RIGHT_ANGLE_OFFSET_PRACTICE;
+       //     backLeftAngleOffset = BACK_LEFT_ANGLE_OFFSET_PRACTICE;
+       //     backRightAngleOffset = BACK_RIGHT_ANGLE_OFFSET_PRACTICE;
+       // }
 
-        Mk2SwerveModule frontLeftModule = new Mk2SwerveModule(
+       // SwerveModule4415Mk1(Vector2 modulePosition, double angleOffset,
+         //                  TalonSRX angleMotor, CANSparkMax driveMotor, AnalogInput angleEncoder);
+
+        //SwerveModule4415Mk1 frontLeftModule1 = new SwerveModule4415Mk1(new Vector2(-TRACKWIDTH / 2.0, WHEELBASE / 2.0), frontLeftAngleOffset, new TalonSRX(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_MOTOR), driveMotor, angleEncoder);
+        
+        SwerveModule4415Mk1 frontLeftModule = new SwerveModule4415Mk1(
                 new Vector2(-TRACKWIDTH / 2.0, WHEELBASE / 2.0),
                 frontLeftAngleOffset,
-                new Spark(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_MOTOR),
+                //new Spark(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_MOTOR),
+                new TalonSRX(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_MOTOR),
                 new CANSparkMax(RobotMap.DRIVETRAIN_FRONT_LEFT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
                 new AnalogInput(RobotMap.DRIVETRAIN_FRONT_LEFT_ANGLE_ENCODER)
         );
         frontLeftModule.setName("Front Left");
 
-        Mk2SwerveModule frontRightModule = new Mk2SwerveModule(
+        SwerveModule4415Mk1 frontRightModule = new SwerveModule4415Mk1(
                 new Vector2(TRACKWIDTH / 2.0, WHEELBASE / 2.0),
                 frontRightAngleOffset,
-                new Spark(RobotMap.DRIVETRAIN_FRONT_RIGHT_ANGLE_MOTOR),
+                new TalonSRX(RobotMap.DRIVETRAIN_FRONT_RIGHT_ANGLE_MOTOR),
                 new CANSparkMax(RobotMap.DRIVETRAIN_FRONT_RIGHT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
                 new AnalogInput(RobotMap.DRIVETRAIN_FRONT_RIGHT_ANGLE_ENCODER)
         );
         frontRightModule.setName("Front Right");
 
-        Mk2SwerveModule backLeftModule = new Mk2SwerveModule(
+        SwerveModule4415Mk1 backLeftModule = new SwerveModule4415Mk1(
                 new Vector2(-TRACKWIDTH / 2.0, -WHEELBASE / 2.0),
                 backLeftAngleOffset,
-                new Spark(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_MOTOR),
+                new TalonSRX(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_MOTOR),
                 new CANSparkMax(RobotMap.DRIVETRAIN_BACK_LEFT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
                 new AnalogInput(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_ENCODER)
         );
         backLeftModule.setName("Back Left");
 
-        Mk2SwerveModule backRightModule = new Mk2SwerveModule(
+        SwerveModule4415Mk1 backRightModule = new SwerveModule4415Mk1(
                 new Vector2(TRACKWIDTH / 2.0, -WHEELBASE / 2.0),
                 backRightAngleOffset,
-                new Spark(RobotMap.DRIVETRAIN_BACK_RIGHT_ANGLE_MOTOR),
+                new TalonSRX(RobotMap.DRIVETRAIN_BACK_RIGHT_ANGLE_MOTOR),
                 new CANSparkMax(RobotMap.DRIVETRAIN_BACK_RIGHT_DRIVE_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless),
                 new AnalogInput(RobotMap.DRIVETRAIN_BACK_RIGHT_ANGLE_ENCODER)
         );
         backRightModule.setName("Back Right");
 
-        swerveModules = new Mk2SwerveModule[]{
+        swerveModules = new SwerveModule4415Mk1[]{
                 frontLeftModule,
                 frontRightModule,
                 backLeftModule,
@@ -218,7 +238,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             SmartDashboard.putNumber("Drivetrain Follower Angle Error", localSegment.rotation.toDegrees() - getGyroscope().getAngle().toDegrees());
         }
 
-        for (Mk2SwerveModule module : swerveModules) {
+        for (SwerveModule4415Mk1 module : swerveModules) {
             SmartDashboard.putNumber(String.format("%s Module Drive Current Draw", module.getName()), module.getDriveCurrent());
         }
     }
@@ -249,7 +269,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
 
     @Override
     protected void initDefaultCommand() {
-        setDefaultCommand(new HolonomicDriveCommand());
+        //setDefaultCommand(new HolonomicDriveCommand());
     }
 
     @Override
@@ -263,4 +283,24 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     public HolonomicMotionProfiledTrajectoryFollower getFollower() {
         return follower;
     }
+
+     public void DrivetrainTeleopPeriodic() {
+        boolean ignoreScalars = Robot.getOi().primaryController.getLeftBumperButton().get();
+
+        double forward = Robot.getOi().primaryController.getLeftYAxis().get(true);
+        double strafe = Robot.getOi().primaryController.getLeftXAxis().get(true);
+        double rotation = Robot.getOi().primaryController.getRightXAxis().get(true, ignoreScalars);
+
+        boolean robotOriented = Robot.getOi().primaryController.getXButton().get();
+        boolean reverseRobotOriented = Robot.getOi().primaryController.getYButton().get();
+
+        Vector2 translation = new Vector2(forward, strafe);
+
+        if (reverseRobotOriented) {
+            robotOriented = true;
+            translation = translation.rotateBy(Rotation2.fromDegrees(180.0));
+        }
+
+        DrivetrainSubsystem.getInstance().holonomicDrive(translation, rotation, !robotOriented);
+     }
 }
