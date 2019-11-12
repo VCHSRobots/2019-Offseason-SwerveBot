@@ -10,10 +10,10 @@ package frc.robot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-//import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
-import org.frcteam2910.common.robot.input.XboxController;
+//import org.frcteam2910.common.robot.input.XboxController;
 
 /**
  * Add your docs here.
@@ -24,10 +24,10 @@ public class OI {
     public final XboxController secondaryController = new XboxController(1);
 
     public OI() {
-        primaryController.getLeftXAxis().setInverted(true);
+        /* primaryController.getLeftXAxis().setInverted(true);
         primaryController.getRightXAxis().setInverted(true);
 
-        primaryController.getRightXAxis().setScale(0.45);
+        primaryController.getRightXAxis().setScale(0.45); */
     }
 
 

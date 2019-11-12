@@ -5,8 +5,12 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 
+import com.revrobotics.CANDigitalInput;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
+import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMax.SoftLimitDirection;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Notifier;
@@ -30,6 +34,7 @@ public class SwerveModule4415Mk1 extends SwerveModule {
 
     /*
      * The default drive encoder rotations per unit.
+     * TODO: update this too
      */
     public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = (1.0 / (4.0 * Math.PI)) * (60.0 / 15.0) * (18.0 / 26.0) * (42.0 / 14.0);
 
@@ -45,6 +50,7 @@ public class SwerveModule4415Mk1 extends SwerveModule {
 
     //private Spark steeringMotor;
     private TalonSRX steeringMotor;
+    private CANDigitalInput angleResetLimit;
     //private AnalogInput angleEncoder;
 
     private CANSparkMax driveMotor;
@@ -96,15 +102,26 @@ public class SwerveModule4415Mk1 extends SwerveModule {
     public SwerveModule4415Mk1(Vector2 modulePosition, double ticksOffset,
                            TalonSRX angleMotor, CANSparkMax driveMotor) {
         super(modulePosition);
+        // initialize member variables
         this.angleOffset = 0;
         this.ticksOffset = ticksOffset;
         this.steeringMotor = angleMotor;
-        this.steeringMotor.setSelectedSensorPosition(0);
         //this.angleEncoder = angleEncoder;
         this.driveMotor = driveMotor;
         this.driveEncoder = new CANEncoder(driveMotor);
         
+        // angle reset hall effect sensor is wired to the spark 
+        // TODO: normally closed or open
+        this.angleResetLimit = new CANDigitalInput(driveMotor, CANDigitalInput.LimitSwitch.kForward, CANDigitalInput.LimitSwitchPolarity.kNormallyClosed);
+        
+        // disable the limit switch for the sparks
+        this.angleResetLimit.enableLimitSwitch(false);
+        // TODO: normally closed or open
+        CANDigitalInput otherLimtiSwith = new CANDigitalInput(driveMotor, CANDigitalInput.LimitSwitch.kReverse, CANDigitalInput.LimitSwitchPolarity.kNormallyClosed);
+        otherLimtiSwith.enableLimitSwitch(false);
+
         // Configure angle motor
+        this.steeringMotor.setSelectedSensorPosition(0);
         this.steeringMotor.configSelectedFeedbackSensor(FeedbackDevice.Analog, 0, CAN_TIMEOUT_MS);
         this.steeringMotor.configFeedbackNotContinuous(true, CAN_TIMEOUT_MS);
         this.steeringMotor.setSensorPhase(true);
@@ -114,7 +131,13 @@ public class SwerveModule4415Mk1 extends SwerveModule {
         this.steeringMotor.config_kF(0, 0, CAN_TIMEOUT_MS);
         this.steeringMotor.setNeutralMode(NeutralMode.Brake);
 
-        driveMotor.setSmartCurrentLimit(60);
+        // config drive motor 
+        this.driveMotor.setSmartCurrentLimit(60);
+        this.driveMotor.enableVoltageCompensation(12);
+        this.driveMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
+        this.driveMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+        this.driveMotor.setIdleMode(IdleMode.kBrake);
+        
 
         angleController.setInputRange(0.0, 2.0 * Math.PI);
         angleController.setContinuous(true);
@@ -196,6 +219,21 @@ public class SwerveModule4415Mk1 extends SwerveModule {
     public void setDriveEncoderRotationsPerUnit(double driveEncoderRotationsPerUnit) {
         synchronized (canLock) {
             this.driveEncoderRotationsPerUnit = driveEncoderRotationsPerUnit;
+        }
+    }
+
+    public boolean isSteeringAtLimit() {
+        return this.angleResetLimit.get();
+    }
+
+    public boolean resetToMagnet()  {
+        if (this.isSteeringAtLimit()) {
+            this.steeringMotor.set(ControlMode.PercentOutput, 0);
+            return true;
+        }
+        else {
+            this.steeringMotor.set(ControlMode.PercentOutput, 0.25);
+            return false;
         }
     }
 }

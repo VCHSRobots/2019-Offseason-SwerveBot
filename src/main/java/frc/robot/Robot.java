@@ -7,11 +7,14 @@
 
 package frc.robot;
 
+import frc.robot.subsystems.*;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.frcteam2910.common.robot.drivers.Mk2SwerveModule;
+//import org.frcteam2910.common.robot.subsystems.Subsystem;
 import org.frcteam2910.common.robot.subsystems.SubsystemManager; 
 
 /**
@@ -22,12 +25,15 @@ import org.frcteam2910.common.robot.subsystems.SubsystemManager;
  * project.
  */
 public class Robot extends TimedRobot {
+  private static final double UPDATE_DT = 5e-3; // 5 ms
 
+  private final SubsystemManager subsystemManager = new SubsystemManager(
+          DrivetrainSubsystem.getInstance()
+  );
 
-  private static final OI oi = new OI();
+  private static final OI oi = new OI(); 
 
   public Robot() {
-
   }
 
   public static OI getOi() {
@@ -40,7 +46,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    
+    subsystemManager.enableKinematicLoop(UPDATE_DT);
+    Superstructure.getInstance().getGyroscope().getAngle();
   }
 
   /**
@@ -53,7 +60,14 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    subsystemManager.outputToSmartDashboard();
 
+    SmartDashboard.putNumber("Robot Angle", Superstructure.getInstance().getGyroscope().getAngle().toDegrees());
+  }
+
+  @Override
+  public void disabledInit() {
+    subsystemManager.stop();
   }
 
   /**
@@ -80,12 +94,17 @@ public class Robot extends TimedRobot {
    
   }
 
+  @Override
+  public void teleopInit() {
+    
+  }
+
   /**
    * This function is called periodically during operator control.
    */
   @Override
   public void teleopPeriodic() {
-
+    DrivetrainSubsystem.getInstance().drivetrainTeleopPeriodic();
   }
 
   /**

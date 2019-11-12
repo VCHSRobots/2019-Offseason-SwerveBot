@@ -6,6 +6,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 //import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -27,6 +28,7 @@ import org.frcteam2910.common.robot.subsystems.SwerveDrivetrain;
 import org.frcteam2910.common.util.DrivetrainFeedforwardConstants;
 import org.frcteam2910.common.util.HolonomicDriveSignal;
 import org.frcteam2910.common.util.HolonomicFeedforward;
+import org.frcteam2910.common.robot.Utilities;
 
 import java.util.Optional;
 
@@ -44,10 +46,11 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             new CentripetalAccelerationConstraint(25.0 * 12.0)
     };
 
-    private static final double FRONT_LEFT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-154.3);
-    private static final double FRONT_RIGHT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-329.0);
-    private static final double BACK_LEFT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-218.10);
-    private static final double BACK_RIGHT_ANGLE_OFFSET_COMPETITION = Math.toRadians(-268.9);
+    // TODO: update offsets from magnet. care of units. it's degrees.
+    private static final double FRONT_LEFT_ANGLE_OFFSET_COMPETITION = Math.toRadians(0);
+    private static final double FRONT_RIGHT_ANGLE_OFFSET_COMPETITION = Math.toRadians(0);
+    private static final double BACK_LEFT_ANGLE_OFFSET_COMPETITION = Math.toRadians(0);
+    private static final double BACK_RIGHT_ANGLE_OFFSET_COMPETITION = Math.toRadians(0);
 
     
     private static final double FRONT_LEFT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-170.2152486947372);
@@ -64,13 +67,15 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
     */
     /**TODO: update PID constants */
-    private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.05, 0.01, 0.0);
-    private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.2, 0.01, 0.0);
+    private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
+    private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
     private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
             new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
     );
 
-    private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
+    // TODO: Update these constants too. 
+    private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
+    //private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
     /* */
 
     private static final DrivetrainSubsystem instance = new DrivetrainSubsystem();
@@ -91,6 +96,8 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     private final Object lock = new Object();
     private HolonomicDriveSignal signal = new HolonomicDriveSignal(Vector2.ZERO, 0.0, false);
     private Trajectory.Segment segment = null;
+
+    private boolean isCalibrating = false;
 
     private DrivetrainSubsystem() {
         double frontLeftAngleOffset = FRONT_LEFT_ANGLE_OFFSET_COMPETITION;
@@ -246,8 +253,11 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             SmartDashboard.putNumber("Drivetrain Follower Angle Error", localSegment.rotation.toDegrees() - getGyroscope().getAngle().toDegrees());
         }
 
+        SmartDashboard.putBoolean("Drivetrain is Calibrating to Magnets", DrivetrainSubsystem.getInstance().isCalibrating);
+
         for (SwerveModule4415Mk1 module : swerveModules) {
             SmartDashboard.putNumber(String.format("%s Module Drive Current Draw", module.getName()), module.getDriveCurrent());
+            SmartDashboard.putBoolean(String.format("%s Module is at Steering Reset Limit", module.getName()), module.isSteeringAtLimit());
         }
     }
 
@@ -292,23 +302,46 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
         return follower;
     }
 
-     public void DrivetrainTeleopPeriodic() {
-        boolean ignoreScalars = Robot.getOi().primaryController.getLeftBumperButton().get();
-
-        double forward = Robot.getOi().primaryController.getLeftYAxis().get(true);
-        double strafe = Robot.getOi().primaryController.getLeftXAxis().get(true);
-        double rotation = Robot.getOi().primaryController.getRightXAxis().get(true, ignoreScalars);
-
-        boolean robotOriented = Robot.getOi().primaryController.getXButton().get();
-        boolean reverseRobotOriented = Robot.getOi().primaryController.getYButton().get();
-
-        Vector2 translation = new Vector2(forward, strafe);
-
-        if (reverseRobotOriented) {
-            robotOriented = true;
-            translation = translation.rotateBy(Rotation2.fromDegrees(180.0));
+    public void drivetrainTeleopPeriodic() {
+        if (Robot.getOi().primaryController.getStartButton()) {
+            // calibrate to magnets
+            isCalibrating = true;
+            resetModulesToMagnet();
+            if (swerveModules[0].resetToMagnet() && swerveModules[1].resetToMagnet() && swerveModules[2].resetToMagnet() && swerveModules[3].resetToMagnet()) {
+                isCalibrating = false;
+                return;
+            }
         }
+        else if (Robot.getOi().primaryController.getBackButton()) {
+            DrivetrainSubsystem.getInstance().holonomicDrive(Vector2.ZERO, 0.0, false);
+        }
+        else {
+            boolean ignoreScalars = Robot.getOi().primaryController.getBumper(Hand.kLeft);
 
-        DrivetrainSubsystem.getInstance().holonomicDrive(translation, rotation, !robotOriented);
-     }
+            double forward = Utilities.deadband(Robot.getOi().primaryController.getY(Hand.kLeft));
+            double strafe = Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
+            double rotation = Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
+
+            if (ignoreScalars) {
+                forward *= 0.8;
+                strafe *= 0.8;
+                rotation *= 0.5;
+            }
+
+            boolean robotOriented = Robot.getOi().primaryController.getXButton();
+            boolean reverseRobotOriented = Robot.getOi().primaryController.getYButton();
+            Vector2 translation = new Vector2(forward, strafe);
+
+            if (reverseRobotOriented) {
+                robotOriented = true;
+                translation = translation.rotateBy(Rotation2.fromDegrees(180.0));
+            }
+
+            DrivetrainSubsystem.getInstance().holonomicDrive(translation, rotation, !robotOriented);
+        }
+    }
+
+    public void resetModulesToMagnet() {
+
+    }
 }
