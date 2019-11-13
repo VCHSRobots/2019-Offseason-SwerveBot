@@ -36,11 +36,14 @@ public class SwerveModule4415Mk1 extends SwerveModule {
      * The default drive encoder rotations per unit.
      * TODO: update this too
      */
+    // public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = (1.0 / (4.0 * Math.PI)) * (60.0 / 15.0) * (18.0 / 26.0) * (42.0 / 14.0);
     public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = (1.0 / (4.0 * Math.PI)) * (60.0 / 15.0) * (18.0 / 26.0) * (42.0 / 14.0);
 
     /* TODO: update this */
     public static final double STEERING_ENCODER_TICKS_PER_ROTATION = 4096;
 
+    // TODO: Update this
+    // private static final PidConstants ANGLE_CONSTANTS = new PidConstants(0.5, 0.0, 0.0001);
     private static final PidConstants ANGLE_CONSTANTS = new PidConstants(0.5, 0.0, 0.0001);
 
     private static final double CAN_UPDATE_RATE = 50.0;
@@ -99,12 +102,12 @@ public class SwerveModule4415Mk1 extends SwerveModule {
      * @param driveMotor     The motor that drives the module's wheel
      * @param angleEncoder   The analog input for the angle encoder
      */
-    public SwerveModule4415Mk1(Vector2 modulePosition, double ticksOffset,
+    public SwerveModule4415Mk1(Vector2 modulePosition, double angleOffsetRadians,
                            TalonSRX angleMotor, CANSparkMax driveMotor) {
         super(modulePosition);
         // initialize member variables
-        this.angleOffset = 0;
-        this.ticksOffset = ticksOffset;
+        this.angleOffset = angleOffsetRadians;
+        this.ticksOffset = angleOffsetRadians;
         this.steeringMotor = angleMotor;
         //this.angleEncoder = angleEncoder;
         this.driveMotor = driveMotor;
@@ -112,15 +115,30 @@ public class SwerveModule4415Mk1 extends SwerveModule {
         
         // angle reset hall effect sensor is wired to the spark 
         // TODO: normally closed or open
-        this.angleResetLimit = new CANDigitalInput(driveMotor, CANDigitalInput.LimitSwitch.kForward, CANDigitalInput.LimitSwitchPolarity.kNormallyClosed);
+        this.angleResetLimit = new CANDigitalInput(
+                driveMotor, 
+                CANDigitalInput.LimitSwitch.kForward, 
+                CANDigitalInput.LimitSwitchPolarity.kNormallyClosed
+        );
         
-        // disable the limit switch for the sparks
+        // disable the limit switch for the spark drive
         this.angleResetLimit.enableLimitSwitch(false);
         // TODO: normally closed or open
-        CANDigitalInput otherLimtiSwith = new CANDigitalInput(driveMotor, CANDigitalInput.LimitSwitch.kReverse, CANDigitalInput.LimitSwitchPolarity.kNormallyClosed);
+        CANDigitalInput otherLimtiSwith = new CANDigitalInput(
+                driveMotor, 
+                CANDigitalInput.LimitSwitch.kReverse, 
+                CANDigitalInput.LimitSwitchPolarity.kNormallyClosed
+        );
         otherLimtiSwith.enableLimitSwitch(false);
 
-        // Configure angle motor
+        // config drive motor 
+        this.driveMotor.setSmartCurrentLimit(60);
+        this.driveMotor.enableVoltageCompensation(12);
+        this.driveMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
+        this.driveMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+        this.driveMotor.setIdleMode(IdleMode.kBrake);
+        
+        // Config angle motor
         this.steeringMotor.setSelectedSensorPosition(0);
         this.steeringMotor.configSelectedFeedbackSensor(FeedbackDevice.Analog, 0, CAN_TIMEOUT_MS);
         this.steeringMotor.configFeedbackNotContinuous(true, CAN_TIMEOUT_MS);
@@ -130,14 +148,7 @@ public class SwerveModule4415Mk1 extends SwerveModule {
         this.steeringMotor.config_kD(0, 200, CAN_TIMEOUT_MS);
         this.steeringMotor.config_kF(0, 0, CAN_TIMEOUT_MS);
         this.steeringMotor.setNeutralMode(NeutralMode.Brake);
-
-        // config drive motor 
-        this.driveMotor.setSmartCurrentLimit(60);
-        this.driveMotor.enableVoltageCompensation(12);
-        this.driveMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
-        this.driveMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
-        this.driveMotor.setIdleMode(IdleMode.kBrake);
-        
+ 
 
         angleController.setInputRange(0.0, 2.0 * Math.PI);
         angleController.setContinuous(true);
@@ -157,8 +168,12 @@ public class SwerveModule4415Mk1 extends SwerveModule {
 
         return angle; */
 
-        double angle = ( steeringMotor.getSelectedSensorPosition() + ticksOffset ) % STEERING_ENCODER_TICKS_PER_ROTATION;
-        angle *= (2.0 * Math.PI);
+        // 1.0 - 
+        double angle = ( 1 / STEERING_ENCODER_TICKS_PER_ROTATION ) 
+                        * ( steeringMotor.getSelectedSensorPosition() % STEERING_ENCODER_TICKS_PER_ROTATION ) 
+                        * 2.0 * Math.PI 
+                        + angleOffset;
+        angle %= (2.0 * Math.PI);
         if (angle < 0.0) {
             angle += 2.0 * Math.PI;
         }

@@ -33,17 +33,21 @@ import org.frcteam2910.common.robot.Utilities;
 import java.util.Optional;
 
 public class DrivetrainSubsystem extends SwerveDrivetrain {
-    /* TODO: update dimensions */
-    private static final double TRACKWIDTH = 19.5;
-    private static final double WHEELBASE = 23.5;
+    /* 
+    * Track width is the distance between the center of 2 tires mounted on same axle
+    * Wheel base is the distance between the front and rear axles of a vehicle
+    */
+    private static final double TRACKWIDTH = 14;
+    private static final double WHEELBASE = 14.5;
 
-    private static final double MAX_VELOCITY = 12.0 * 12.0;
+    // TODO: update. I (Josh) assumes this is Forward velocity * strafe horizontal velocity.....
+    private static final double MAX_VELOCITY = 7.0 * 7.0;
 
     /* TODO: update constraints */
     public static final ITrajectoryConstraint[] CONSTRAINTS = {
             new MaxVelocityConstraint(MAX_VELOCITY),
-            new MaxAccelerationConstraint(13.0 * 12.0),
-            new CentripetalAccelerationConstraint(25.0 * 12.0)
+            new MaxAccelerationConstraint(8.0 * 7.0),
+            new CentripetalAccelerationConstraint(20.0 * 7.0)
     };
 
     // TODO: update offsets from magnet. care of units. it's degrees.
@@ -57,26 +61,25 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     private static final double FRONT_RIGHT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-43.55619048306742);
     private static final double BACK_LEFT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-237.47063008637048);
     private static final double BACK_RIGHT_ANGLE_OFFSET_PRACTICE = Math.toRadians(-336.70093128378477);
-    /*
-    private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.05, 0.01, 0.0);
-    private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.2, 0.01, 0.0);
-    private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
-            new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
-    );
 
-    private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
+    /* TODO: update PID constants
+    * 
+    * private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.05, 0.01, 0.0);
+    * private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.2, 0.01, 0.0);
+    * private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
+    *         new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
+    * );
     */
-    /**TODO: update PID constants */
     private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
     private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
     private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
             new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
     );
 
-    // TODO: Update these constants too. 
+    /* TODO: Update these constants too. 
+    * private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
+    */
     private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
-    //private static final PidConstants SNAP_ROTATION_CONSTANTS = new PidConstants(0.3, 0.01, 0.0);
-    /* */
 
     private static final DrivetrainSubsystem instance = new DrivetrainSubsystem();
 
