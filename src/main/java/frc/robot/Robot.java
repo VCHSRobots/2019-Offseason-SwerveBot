@@ -10,12 +10,17 @@ package frc.robot;
 import frc.robot.subsystems.*;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import org.frcteam2910.common.robot.drivers.Mk2SwerveModule;
 //import org.frcteam2910.common.robot.subsystems.Subsystem;
 import org.frcteam2910.common.robot.subsystems.SubsystemManager; 
+import org.frcteam2910.common.robot.Utilities;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -107,11 +112,24 @@ public class Robot extends TimedRobot {
     DrivetrainSubsystem.getInstance().drivetrainTeleopPeriodic();
   }
 
+  private TalonSRX test_motor;
+
+  @Override
+  public void testInit() {
+    super.testInit();
+    test_motor = new TalonSRX(RobotMap.DRIVETRAIN_BACK_LEFT_ANGLE_MOTOR);
+  }
+
   /**
    * This function is called periodically during test mode.
    */
   @Override
   public void testPeriodic() {
+    super.testPeriodic();
+    
+    test_motor.set(
+        ControlMode.PercentOutput, 
+        Utilities.deadband(getOi().primaryController.getX(Hand.kRight)));
 
   }
 }

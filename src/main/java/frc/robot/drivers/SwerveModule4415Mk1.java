@@ -37,7 +37,7 @@ public class SwerveModule4415Mk1 extends SwerveModule {
      * TODO: update this too
      */
     // public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = (1.0 / (4.0 * Math.PI)) * (60.0 / 15.0) * (18.0 / 26.0) * (42.0 / 14.0);
-    public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = (1.0 / (4.0 * Math.PI)) * (60.0 / 15.0) * (18.0 / 26.0) * (42.0 / 14.0);
+    public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = 0.25;
 
     /* TODO: update this */
     public static final double STEERING_ENCODER_TICKS_PER_ROTATION = 4096;
@@ -54,6 +54,7 @@ public class SwerveModule4415Mk1 extends SwerveModule {
     //private Spark steeringMotor;
     private TalonSRX steeringMotor;
     private CANDigitalInput angleResetLimit;
+    private CANDigitalInput otherLimtiSwith;
     //private AnalogInput angleEncoder;
 
     private CANSparkMax driveMotor;
@@ -118,18 +119,18 @@ public class SwerveModule4415Mk1 extends SwerveModule {
         this.angleResetLimit = new CANDigitalInput(
                 driveMotor, 
                 CANDigitalInput.LimitSwitch.kForward, 
-                CANDigitalInput.LimitSwitchPolarity.kNormallyClosed
+                CANDigitalInput.LimitSwitchPolarity.kNormallyOpen
         );
         
         // disable the limit switch for the spark drive
         this.angleResetLimit.enableLimitSwitch(false);
         // TODO: normally closed or open
-        CANDigitalInput otherLimtiSwith = new CANDigitalInput(
+        this.otherLimtiSwith = new CANDigitalInput(
                 driveMotor, 
                 CANDigitalInput.LimitSwitch.kReverse, 
-                CANDigitalInput.LimitSwitchPolarity.kNormallyClosed
+                CANDigitalInput.LimitSwitchPolarity.kNormallyOpen
         );
-        otherLimtiSwith.enableLimitSwitch(false);
+        this.otherLimtiSwith.enableLimitSwitch(false);
 
         // config drive motor 
         this.driveMotor.setSmartCurrentLimit(60);
@@ -238,7 +239,7 @@ public class SwerveModule4415Mk1 extends SwerveModule {
     }
 
     public boolean isSteeringAtLimit() {
-        return this.angleResetLimit.get();
+        return this.angleResetLimit.get() || this.otherLimtiSwith.get();
     }
 
     public boolean resetToMagnet()  {

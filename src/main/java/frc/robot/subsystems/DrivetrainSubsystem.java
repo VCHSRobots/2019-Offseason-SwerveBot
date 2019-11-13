@@ -316,7 +316,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             }
         }
         else if (Robot.getOi().primaryController.getBackButton()) {
-            DrivetrainSubsystem.getInstance().holonomicDrive(Vector2.ZERO, 0.0, false);
+            DrivetrainSubsystem.getInstance().stop();
         }
         else {
             boolean ignoreScalars = Robot.getOi().primaryController.getBumper(Hand.kLeft);
@@ -325,7 +325,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             double strafe = Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
             double rotation = Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
 
-            if (ignoreScalars) {
+            if (!ignoreScalars) {
                 forward *= 0.8;
                 strafe *= 0.8;
                 rotation *= 0.5;
