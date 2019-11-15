@@ -70,10 +70,10 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
     *         new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
     * );
     */
-    private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
-    private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.0, 0.0, 0.0);
+    private static final PidConstants FOLLOWER_TRANSLATION_CONSTANTS = new PidConstants(0.005, 0.001, 0.0);
+    private static final PidConstants FOLLOWER_ROTATION_CONSTANTS = new PidConstants(0.02, 0.001, 0.0);
     private static final HolonomicFeedforward FOLLOWER_FEEDFORWARD_CONSTANTS = new HolonomicFeedforward(
-            new DrivetrainFeedforwardConstants(1.0 / (14.0 * 12.0), 0.0, 0.0)
+            new DrivetrainFeedforwardConstants(1.0 / (14.0 * 14.0), 0.0, 0.0)
     );
 
     /* TODO: Update these constants too. 
@@ -161,7 +161,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
 
         snapRotationController.setInputRange(0.0, 2.0 * Math.PI);
         snapRotationController.setContinuous(true);
-        snapRotationController.setOutputRange(-0.5, 0.5);
+        snapRotationController.setOutputRange(-0.4, 0.4);
     }
 
     public void setSnapRotation(double snapRotation) {
@@ -215,6 +215,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             }
         }
 
+        //if (false) {
         if (Math.abs(localSignal.getRotation()) < 0.1 && Double.isFinite(localSnapRotation)) {
             snapRotationController.setSetpoint(localSnapRotation);
 
@@ -227,7 +228,10 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             }
         }
 
+        //HolonomicDriveSignal testSignal = new HolonomicDriveSignal(new Vector2(0.0, 0.0), 0.0, false);
+
         super.holonomicDrive(localSignal.getTranslation(), localSignal.getRotation(), localSignal.isFieldOriented());
+        //super.holonomicDrive(testSignal.getTranslation(), testSignal.getRotation(), testSignal.isFieldOriented());
     }
 
     @Override
@@ -321,14 +325,19 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
         else {
             boolean ignoreScalars = Robot.getOi().primaryController.getBumper(Hand.kLeft);
 
-            double forward = Utilities.deadband(Robot.getOi().primaryController.getY(Hand.kLeft));
-            double strafe = Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
-            double rotation = Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
+            double scale_right_X = -0.5;
+            double scale_left_Y = -0.5;
+            double scale_left_X = 0.5;
 
+            double forward = scale_left_Y * Utilities.deadband(Robot.getOi().primaryController.getY(Hand.kLeft));
+            double strafe = scale_left_X * Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kLeft));
+            double rotation = scale_right_X * Utilities.deadband(Robot.getOi().primaryController.getX(Hand.kRight));
+
+            // TODO: update to make faster
             if (!ignoreScalars) {
-                forward *= 0.8;
-                strafe *= 0.8;
-                rotation *= 0.5;
+                forward *= 0.7;
+                strafe *= 0.7;
+                rotation *= 0.7;
             }
 
             boolean robotOriented = Robot.getOi().primaryController.getXButton();
@@ -341,10 +350,17 @@ public class DrivetrainSubsystem extends SwerveDrivetrain {
             }
 
             DrivetrainSubsystem.getInstance().holonomicDrive(translation, rotation, !robotOriented);
+            //HolonomicDriveSignal(Vector2.ZERO, 0.0, false)
         }
     }
 
     public void resetModulesToMagnet() {
 
+    }
+
+    public void resetDriveKinematics() {
+        for (SwerveModule4415Mk1 module : swerveModules) {
+            module.resetKinematics();
+        }
     }
 }

@@ -53,6 +53,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     subsystemManager.enableKinematicLoop(UPDATE_DT);
     Superstructure.getInstance().getGyroscope().getAngle();
+    
   }
 
   /**
@@ -101,7 +102,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    
+    //DrivetrainSubsystem.getInstance().resetDriveKinematics();
   }
 
   /**

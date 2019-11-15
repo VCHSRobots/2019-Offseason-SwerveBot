@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.frcteam2910.common.control.PidConstants;
 import org.frcteam2910.common.control.PidController;
@@ -37,14 +38,14 @@ public class SwerveModule4415Mk1 extends SwerveModule {
      * TODO: update this too
      */
     // public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = (1.0 / (4.0 * Math.PI)) * (60.0 / 15.0) * (18.0 / 26.0) * (42.0 / 14.0);
-    public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = 0.25;
+    public static final double DEFAULT_DRIVE_ROTATIONS_PER_UNIT = 0.3;
 
     /* TODO: update this */
-    public static final double STEERING_ENCODER_TICKS_PER_ROTATION = 4096;
+    public static final double STEERING_ENCODER_TICKS_PER_ROTATION = 15018.67;
 
     // TODO: Update this
     // private static final PidConstants ANGLE_CONSTANTS = new PidConstants(0.5, 0.0, 0.0001);
-    private static final PidConstants ANGLE_CONSTANTS = new PidConstants(0.5, 0.0, 0.0001);
+    private static final PidConstants ANGLE_CONSTANTS = new PidConstants(0.4, 0.0, 0.0002);
 
     private static final double CAN_UPDATE_RATE = 50.0;
 
@@ -133,17 +134,17 @@ public class SwerveModule4415Mk1 extends SwerveModule {
         this.otherLimtiSwith.enableLimitSwitch(false);
 
         // config drive motor 
-        this.driveMotor.setSmartCurrentLimit(60);
-        this.driveMotor.enableVoltageCompensation(12);
+        this.driveMotor.setSmartCurrentLimit(35);
+        this.driveMotor.enableVoltageCompensation(10);
         this.driveMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
         this.driveMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
         this.driveMotor.setIdleMode(IdleMode.kBrake);
         
         // Config angle motor
+        this.steeringMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, CAN_TIMEOUT_MS);
         this.steeringMotor.setSelectedSensorPosition(0);
-        this.steeringMotor.configSelectedFeedbackSensor(FeedbackDevice.Analog, 0, CAN_TIMEOUT_MS);
         this.steeringMotor.configFeedbackNotContinuous(true, CAN_TIMEOUT_MS);
-        this.steeringMotor.setSensorPhase(true);
+        this.steeringMotor.setSensorPhase(false);
         this.steeringMotor.config_kP(0, 30, CAN_TIMEOUT_MS);
         this.steeringMotor.config_kI(0, 0.001, CAN_TIMEOUT_MS);
         this.steeringMotor.config_kD(0, 200, CAN_TIMEOUT_MS);
@@ -170,6 +171,9 @@ public class SwerveModule4415Mk1 extends SwerveModule {
         return angle; */
 
         // 1.0 - 
+
+        SmartDashboard.putNumber(String.format("%s Encoder Postion", getName()), steeringMotor.getSelectedSensorPosition(0));
+
         double angle = ( 1 / STEERING_ENCODER_TICKS_PER_ROTATION ) 
                         * ( steeringMotor.getSelectedSensorPosition() % STEERING_ENCODER_TICKS_PER_ROTATION ) 
                         * 2.0 * Math.PI 
@@ -245,10 +249,11 @@ public class SwerveModule4415Mk1 extends SwerveModule {
     public boolean resetToMagnet()  {
         if (this.isSteeringAtLimit()) {
             this.steeringMotor.set(ControlMode.PercentOutput, 0);
+            this.steeringMotor.setSelectedSensorPosition(0);
             return true;
         }
         else {
-            this.steeringMotor.set(ControlMode.PercentOutput, 0.25);
+            this.steeringMotor.set(ControlMode.PercentOutput, 0.15);
             return false;
         }
     }
